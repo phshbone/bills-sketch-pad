@@ -1,4 +1,4 @@
-const CACHE='bills-sketch-pad-v5';
+const CACHE='bills-sketch-pad-v6';
 const ASSETS=[
   './',
   './index.html',
