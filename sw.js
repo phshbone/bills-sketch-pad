@@ -1,5 +1,5 @@
-const CACHE='bills-sketch-pad-v1';
-const ASSETS=['./','./index.html','./manifest.webmanifest'];
+const CACHE='bills-sketch-pad-v3';
+const ASSETS=['./','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png','./apple-touch-icon.png'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS))));
 self.addEventListener('activate',e=>e.waitUntil(self.clients.claim()));
 self.addEventListener('fetch',e=>{

@@ -6,6 +6,8 @@
 <meta name="theme-color" content="#0b1026">
 <title>bill's sketch pad</title>
 <link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <style>
 :root{
   --bg:#0b1026;
@@ -82,7 +84,7 @@ button{color:var(--text)}
   background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:8px;height:36px
 }
 .bottom select{padding:0 8px}
-.bottom input[type="range"]{width:130px}
+.bottom input[type="range"]{width:130px;touch-action:pan-x}
 .status{font-size:12px;color:var(--muted);white-space:nowrap}
 .hidden{display:none!important}
 #textPrompt{
@@ -133,8 +135,8 @@ button{color:var(--text)}
       <button data-tool="arrow" title="Arrow" aria-label="Arrow">➜</button>
       <button data-tool="rect" title="Rectangle" aria-label="Rectangle">▭</button>
       <button data-tool="text" title="Text note" aria-label="Text note">T</button>
-      <button class="optional" id="importBtn" title="Import image" aria-label="Import image">＋</button>
-      <button class="optional" id="exportBtn" title="Export PNG" aria-label="Export PNG">⇩</button>
+      <button id="importBtn" title="Import image" aria-label="Import image">＋</button>
+      <button id="exportBtn" title="Export PNG" aria-label="Export PNG">⇩</button>
     </aside>
   </main>
 
@@ -149,9 +151,10 @@ button{color:var(--text)}
     </label>
     <label>Ink <input id="color" type="color" value="#111111" aria-label="Ink color"></label>
     <label>Size <input id="size" type="range" min="1" max="24" value="4" aria-label="Stroke size"></label>
-    <button class="iconbtn" id="zoomOut" aria-label="Zoom out">−</button>
+    <label>Zoom
+      <input id="zoomSlider" type="range" min="35" max="250" value="100" aria-label="Zoom">
+    </label>
     <span class="status" id="zoomLabel">100%</span>
-    <button class="iconbtn" id="zoomIn" aria-label="Zoom in">＋</button>
     <button class="iconbtn" id="fitBtn" aria-label="Fit page">Fit</button>
     <span class="status" id="status">Pen</span>
   </footer>
@@ -460,9 +463,10 @@ button{color:var(--text)}
     paper.parentElement.style.width=(paper.offsetWidth*zoom)+'px';
     paper.parentElement.style.height=(paper.offsetHeight*zoom)+'px';
     zoomLabel.textContent=Math.round(zoom*100)+'%';
+    const zs=document.getElementById('zoomSlider');
+    if(zs) zs.value=Math.round(zoom*100);
   }
-  document.getElementById('zoomIn').addEventListener('click',()=>setZoom(zoom+.1));
-  document.getElementById('zoomOut').addEventListener('click',()=>setZoom(zoom-.1));
+  document.getElementById('zoomSlider').addEventListener('input',e=>setZoom(Number(e.target.value)/100));
   document.getElementById('fitBtn').addEventListener('click',()=>{
     const available=Math.max(220,viewport.clientWidth-24);
     setZoom(Math.min(1,available/paper.offsetWidth));
