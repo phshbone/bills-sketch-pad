@@ -120,6 +120,7 @@ button{color:var(--text)}
     <div class="spacer"></div>
     <button class="iconbtn" id="undoBtn" title="Undo" aria-label="Undo">↶</button>
     <button class="iconbtn" id="redoBtn" title="Redo" aria-label="Redo">↷</button>
+    <button class="iconbtn" id="newCanvasBtn" title="New canvas" aria-label="New canvas">New</button>
     <button class="iconbtn hide-mobile" id="clearBtn" title="Clear drawing" aria-label="Clear drawing">Clear</button>
   </header>
 
@@ -184,6 +185,18 @@ button{color:var(--text)}
   </div>
 </div>
 
+<div id="importPrompt" class="hidden" role="dialog" aria-modal="true" aria-labelledby="importTitle">
+  <div class="modal">
+    <h2 id="importTitle">Import image</h2>
+    <p style="margin:0 0 12px;color:var(--muted);line-height:1.4">How should this image be added?</p>
+    <div class="row" style="flex-direction:column">
+      <button id="importFresh">New canvas with image</button>
+      <button id="importCurrent">Add image to current canvas</button>
+      <button id="cancelImport">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <script>
 (() => {
   const paper = document.getElementById('paper');
@@ -196,6 +209,7 @@ button{color:var(--text)}
   const zoomLabel = document.getElementById('zoomLabel');
   const fileInput = document.getElementById('fileInput');
   const prompt = document.getElementById('textPrompt');
+  const importPrompt = document.getElementById('importPrompt');
   const noteText = document.getElementById('noteText');
   const noteTag = document.getElementById('noteTag');
 
@@ -208,6 +222,7 @@ button{color:var(--text)}
   let last = null;
   let snapshot = null;
   let pendingNotePoint = null;
+  let pendingImportData = null;
   const undoStack = [];
   const redoStack = [];
   const MAX_HISTORY = 25;
@@ -257,6 +272,17 @@ button{color:var(--text)}
   function updateUndoRedo(){
     document.getElementById('undoBtn').disabled = undoStack.length === 0;
     document.getElementById('redoBtn').disabled = redoStack.length === 0;
+  }
+
+  function resetCanvas({keepHistory=true} = {}){
+    if (keepHistory) pushHistory();
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    notesLayer.innerHTML='';
+    bgImage.removeAttribute('src');
+    bgImage.classList.add('hidden');
+    pendingImportData=null;
+    status.textContent='New canvas';
+    setTimeout(()=>status.textContent=tool[0].toUpperCase()+tool.slice(1),900);
   }
 
   function setTool(next){
@@ -395,6 +421,8 @@ button{color:var(--text)}
     updateUndoRedo();
   });
 
+  document.getElementById('newCanvasBtn').addEventListener('click',()=>resetCanvas({keepHistory:true}));
+
   document.getElementById('clearBtn').addEventListener('click',()=>{
     pushHistory(); ctx.clearRect(0,0,canvas.width,canvas.height); notesLayer.innerHTML='';
   });
@@ -404,10 +432,31 @@ button{color:var(--text)}
     const file=e.target.files && e.target.files[0]; if(!file) return;
     const reader=new FileReader();
     reader.onload=()=>{
-      bgImage.src=reader.result; bgImage.classList.remove('hidden');
+      pendingImportData=reader.result;
+      importPrompt.classList.remove('hidden');
       fileInput.value='';
     };
     reader.readAsDataURL(file);
+  });
+
+  function applyImportedImage({fresh=false} = {}){
+    if(!pendingImportData) return;
+    if(fresh){
+      resetCanvas({keepHistory:true});
+    }else{
+      pushHistory();
+    }
+    bgImage.src=pendingImportData;
+    bgImage.classList.remove('hidden');
+    pendingImportData=null;
+    importPrompt.classList.add('hidden');
+  }
+
+  document.getElementById('importFresh').addEventListener('click',()=>applyImportedImage({fresh:true}));
+  document.getElementById('importCurrent').addEventListener('click',()=>applyImportedImage({fresh:false}));
+  document.getElementById('cancelImport').addEventListener('click',()=>{
+    pendingImportData=null;
+    importPrompt.classList.add('hidden');
   });
 
   function flattenPaper(){
