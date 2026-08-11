@@ -483,13 +483,26 @@ button{color:var(--text)}
 
   function applyImportedImage({fresh=false} = {}){
     if(!pendingImportData) return;
+
+    const imageData = pendingImportData;
+
     if(fresh){
       resetCanvas({keepHistory:true});
     }else{
       pushHistory();
     }
-    bgImage.src=pendingImportData;
-    bgImage.classList.remove('hidden');
+
+    bgImage.onload=()=>{
+      bgImage.classList.remove('hidden');
+      status.textContent='Image imported';
+      setTimeout(()=>status.textContent=tool[0].toUpperCase()+tool.slice(1),1200);
+    };
+    bgImage.onerror=()=>{
+      status.textContent='Image could not be displayed';
+      setTimeout(()=>status.textContent=tool[0].toUpperCase()+tool.slice(1),1600);
+    };
+    bgImage.src=imageData;
+
     pendingImportData=null;
     importPrompt.classList.add('hidden');
   }
